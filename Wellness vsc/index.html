@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DayLog — Wellbeing Research</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+ 
+  <!-- ── Toast notification ── -->
+  <div id="toast" class="toast hidden"></div>
+ 
+  <!-- ══════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════ -->
+  <header class="site-header">
+    <div class="header-inner">
+ 
+      <div class="logo">
+        <span class="logo-leaf">🌿</span>
+        <span class="logo-name">DayLog</span>
+        <span class="logo-sub">wellbeing research</span>
+      </div>
+ 
+      <div class="header-actions">
+        <!-- View toggle — hidden until logged in -->
+        <div id="view-toggle" class="view-toggle hidden">
+          <button id="btn-view-community" class="toggle-pill active"  onclick="App.setView('community')">🌍 Community</button>
+          <button id="btn-view-personal"  class="toggle-pill"         onclick="App.setView('personal')">👤 My week</button>
+        </div>
+ 
+        <button class="btn-primary" onclick="UI.openForm()">+ Log today</button>
+        <button id="btn-auth" class="btn-outline" onclick="UI.openAuth('login')">Sign in</button>
+      </div>
+ 
+    </div>
+  </header>
+ 
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════ -->
+  <main class="main-content">
+ 
+    <!-- Page heading -->
+    <div class="page-intro">
+      <h2 id="page-title" class="page-title">How is everyone doing? 🌍</h2>
+      <p  id="page-sub"   class="page-sub"></p>
+    </div>
+ 
+    <!-- ── Chart 1: Mood line (full width) ── -->
+    <div class="card" id="mood-card">
+      <div class="card-top-row">
+ 
+        <div class="section-label" data-color="#f0b429">
+          <div class="label-bar" style="background:#f0b429"></div>
+          <span style="color:#f0b429">📈 Mood this week</span>
+        </div>
+ 
+        <!-- Checkboxes — always visible, locked when logged out -->
+        <div class="checkboxes" id="mood-checkboxes">
+          <label class="cb-wrap locked" id="cbwrap-you">
+            <div class="cb-box" id="cb-you" data-key="you" data-color="#f0b429" onclick="App.toggleCheck('you')"></div>
+            <span id="cblabel-you">My mood 🔒</span>
+          </label>
+          <label class="cb-wrap locked" id="cbwrap-sleep">
+            <div class="cb-box" id="cb-sleep" data-key="sleep" data-color="#7ab8d4" onclick="App.toggleCheck('sleep')"></div>
+            <span id="cblabel-sleep">Sleep (h) 🔒</span>
+          </label>
+          <label class="cb-wrap locked" id="cbwrap-others">
+            <div class="cb-box" id="cb-others" data-key="others" data-color="#b39ddb" onclick="App.toggleCheck('others')"></div>
+            <span id="cblabel-others">Others 🔒</span>
+          </label>
+        </div>
+ 
+      </div>
+ 
+      <div class="chart-wrap tall">
+        <canvas id="chart-mood"></canvas>
+      </div>
+ 
+      <!-- Week summary — shown only when logged in -->
+      <div id="week-summary" class="summary-box hidden">
+        <span class="summary-icon">📋</span>
+        <p id="summary-text"></p>
+      </div>
+ 
+      <!-- Sign-in inline banner — shown only when logged OUT -->
+      <div id="signin-banner" class="signin-banner">
+        <div class="signin-banner-text">
+          <span class="signin-banner-icon">🔒</span>
+          <div>
+            <strong>Sign in to unlock your personal chart</strong>
+            <p>Compare your mood with the community, overlay your sleep line, and get your weekly summary.</p>
+          </div>
+        </div>
+        <div class="signin-banner-btns">
+          <button class="btn-outline-sage" onclick="UI.openForm()">+ Log anonymously</button>
+          <button class="btn-primary"      onclick="UI.openAuth('login')">Sign in</button>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── Charts 2 & 3: side by side ── -->
+    <div class="bottom-grid">
+ 
+      <!-- Chart 2: Nourishment -->
+      <div class="card" id="nourish-card">
+        <div class="section-label">
+          <div class="label-bar" style="background:#c17f5a"></div>
+          <span style="color:#c17f5a">🥣 Nourishment</span>
+        </div>
+        <div class="nourish-inner">
+          <div class="donut-wrap">
+            <canvas id="chart-nourish"></canvas>
+          </div>
+          <div id="nourish-legend" class="nourish-legend"></div>
+        </div>
+      </div>
+ 
+      <!-- Chart 3: Sleep -->
+      <div class="card" id="sleep-card">
+        <div class="card-top-row">
+          <div class="section-label">
+            <div class="label-bar" style="background:#7ab8d4"></div>
+            <span style="color:#7ab8d4">🌙 Sleep</span>
+          </div>
+          <div class="sleep-avg">
+            <span id="sleep-avg-val" class="sleep-avg-num">—</span>
+            <span class="sleep-avg-label">average</span>
+          </div>
+        </div>
+        <div class="chart-wrap short">
+          <canvas id="chart-sleep"></canvas>
+        </div>
+      </div>
+ 
+    </div>
+ 
+ 
+ 
+  </main>
+ 
+  <!-- ══════════════════════════════════════
+       AUTH PANEL (slides in from right)
+  ══════════════════════════════════════ -->
+  <div id="auth-overlay" class="overlay hidden" onclick="UI.closeAuth()">
+    <aside class="auth-panel" onclick="event.stopPropagation()">
+ 
+      <!-- Login / Sign up tabs -->
+      <div class="auth-tabs">
+        <button id="tab-login"  class="auth-tab active" onclick="UI.switchAuthTab('login')">Sign in</button>
+        <button id="tab-signup" class="auth-tab"        onclick="UI.switchAuthTab('signup')">Sign up</button>
+      </div>
+ 
+      <!-- ── LOGIN ── -->
+      <div id="auth-login-form">
+        <h2 class="auth-title">Welcome back 🌱</h2>
+        <p class="auth-desc">Sign in to see your personal mood trends, sleep and weekly summary.</p>
+ 
+        <div class="field-group">
+          <label class="field-label">Username</label>
+          <input id="login-user" class="field-input" type="text"     placeholder="your username"  autocomplete="username" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <input id="login-pass" class="field-input" type="password" placeholder="••••••••"       autocomplete="current-password"
+                 onkeydown="if(event.key==='Enter') App.handleLogin()" />
+        </div>
+        <p id="login-error" class="auth-error hidden"></p>
+ 
+        <button class="btn-primary btn-block" onclick="App.handleLogin()">Sign in</button>
+        <p class="auth-demo">demo: <strong>maya / sun123</strong> · <strong>leo / rain456</strong></p>
+      </div>
+ 
+      <!-- ── SIGN UP ── -->
+      <div id="auth-signup-form" class="hidden">
+        <h2 class="auth-title">Create account 🌸</h2>
+        <p class="auth-desc">Track your own week and see how you compare to the community over time.</p>
+ 
+        <div class="field-group">
+          <label class="field-label">Username</label>
+          <input id="signup-user"    class="field-input" type="text"     placeholder="choose a username" autocomplete="username" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Email <span class="optional">(optional)</span></label>
+          <input id="signup-email"   class="field-input" type="email"    placeholder="you@example.com"  autocomplete="email" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <input id="signup-pass"    class="field-input" type="password" placeholder="at least 6 characters" autocomplete="new-password" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Confirm password</label>
+          <input id="signup-confirm" class="field-input" type="password" placeholder="repeat password"   autocomplete="new-password"
+                 onkeydown="if(event.key==='Enter') App.handleSignup()" />
+        </div>
+        <p id="signup-error"   class="auth-error   hidden"></p>
+        <p id="signup-success" class="auth-success hidden"></p>
+ 
+        <button class="btn-primary btn-block" onclick="App.handleSignup()">Create account</button>
+        <div class="auth-privacy">
+          🔒 No account needed to browse or log anonymously. Personal accounts let you track your own journey over time.
+        </div>
+      </div>
+ 
+    </aside>
+  </div>
+ 
+  <!-- ══════════════════════════════════════
+       ENTRY FORM MODAL
+  ══════════════════════════════════════ -->
+  <div id="form-overlay" class="overlay hidden" onclick="UI.closeForm()">
+    <div class="form-modal" onclick="event.stopPropagation()">
+ 
+      <div class="form-modal-header">
+        <div>
+          <h2 class="form-title">Log today 🌿</h2>
+          <p id="form-save-note" class="form-save-note">Saving anonymously 🔒</p>
+        </div>
+        <button class="close-btn" onclick="UI.closeForm()">✕</button>
+      </div>
+ 
+      <!-- Q1: Mood -->
+      <div class="form-section">
+        <div class="form-label">How's your mood today?</div>
+        <div class="mood-picker">
+          <button class="mood-btn" data-val="1" onclick="App.pickMood(1)">😞<span>Awful</span></button>
+          <button class="mood-btn" data-val="2" onclick="App.pickMood(2)">😕<span>Low</span></button>
+          <button class="mood-btn" data-val="3" onclick="App.pickMood(3)">😐<span>Okay</span></button>
+          <button class="mood-btn" data-val="4" onclick="App.pickMood(4)">🙂<span>Good</span></button>
+          <button class="mood-btn" data-val="5" onclick="App.pickMood(5)">😄<span>Great</span></button>
+        </div>
+      </div>
+ 
+      <!-- Q2: Sleep -->
+      <div class="form-section">
+        <div class="form-label-row">
+          <span class="form-label">How many hours did you sleep?</span>
+          <span id="sleep-val-display" class="slider-readout">7h</span>
+        </div>
+        <input id="sleep-slider" class="range-slider" type="range" min="2" max="12" step="0.5" value="7"
+               oninput="document.getElementById('sleep-val-display').textContent = this.value + 'h'" />
+        <div class="slider-ends"><span>2h</span><span>12h</span></div>
+      </div>
+ 
+      <!-- Q3: Breakfast -->
+      <div class="form-section">
+        <div class="form-label">What did you have for breakfast?</div>
+        <div class="breakfast-grid">
+          <button class="bf-btn" data-val="Full meal"    onclick="App.pickBreakfast('Full meal')">
+            <span class="bf-emoji">🍳</span>
+            <span class="bf-name">Full meal</span>
+            <span class="bf-hint">Eggs, porridge, toast…</span>
+          </button>
+          <button class="bf-btn" data-val="Light bite"   onclick="App.pickBreakfast('Light bite')">
+            <span class="bf-emoji">🍌</span>
+            <span class="bf-name">Light bite</span>
+            <span class="bf-hint">Fruit, yogurt, snack…</span>
+          </button>
+          <button class="bf-btn" data-val="Just a drink" onclick="App.pickBreakfast('Just a drink')">
+            <span class="bf-emoji">☕</span>
+            <span class="bf-name">Just a drink</span>
+            <span class="bf-hint">Coffee or tea only…</span>
+          </button>
+          <button class="bf-btn" data-val="Skipped"      onclick="App.pickBreakfast('Skipped')">
+            <span class="bf-emoji">⏭️</span>
+            <span class="bf-name">Skipped</span>
+            <span class="bf-hint">Nothing yet</span>
+          </button>
+        </div>
+      </div>
+ 
+      <button id="save-btn" class="btn-save disabled" onclick="App.handleSave()">
+        Pick mood &amp; breakfast to save
+      </button>
+ 
+    </div>
+  </div>
+ 
+  <!-- Scripts — api.js first, then app.js -->
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+ 
+</body>
+</html>
