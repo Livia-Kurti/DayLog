@@ -21,9 +21,22 @@ const STATE = {
 };
  
 // ═══════════════════════════════════════════════════════════════════════
-//  CONSTANTS
+//  CONSTANTS & DATE HELPERS
 // ═══════════════════════════════════════════════════════════════════════
-const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const getISODate = (date) => date.toISOString().split('T')[0];
+
+// Generate exact YYYY-MM-DD strings for the last 7 days
+const LAST_7_DATES = [...Array(7)].map((_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() - (6 - i));
+  return getISODate(d);
+});
+
+// Create friendly chart labels (e.g., "Mon", "Tue") for those exact dates
+const DAY_LABELS = LAST_7_DATES.map(dateStr => {
+  const d = new Date(dateStr + 'T12:00:00'); // Forces midday to avoid timezone shifting
+  return d.toLocaleDateString('en-US', { weekday: 'short' });
+});
  
 const BREAKFAST_BUCKETS = ['Full meal','Light bite','Just a drink','Skipped'];
  
@@ -256,12 +269,11 @@ function _updateSaveBtn() {
 async function handleSave() {
   if (!STATE.formMood || !STATE.formBreakfast) return;
  
-  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const entry = {
     mood:      STATE.formMood,
     sleep:     parseFloat(document.getElementById('sleep-slider').value),
     breakfast: STATE.formBreakfast,
-    date:      dayNames[new Date().getDay()],
+    date:      getISODate(new Date()),
   };
  
   const userId = STATE.user ? STATE.user.id : null;
@@ -377,14 +389,14 @@ function _renderMoodChart() {
   const chk  = STATE.checks;
  
   // Community avg mood per day
-  const commMood = DAYS.map(d => {
+  const commMood = LAST_7_DATES.map(d => {
     const rows = STATE.communityData.filter(e => e.date === d);
     return rows.length ? avg(rows.map(e => e.mood)) : null;
   });
  
   // My mood + sleep per day
-  const myMood  = DAYS.map(d => { const e = STATE.myData.find(x => x.date === d); return e ? e.mood  : null; });
-  const mySleep = DAYS.map(d => { const e = STATE.myData.find(x => x.date === d); return e ? e.sleep : null; });
+  const myMood  = LAST_7_DATES.map(d => { const e = STATE.myData.find(x => x.date === d); return e ? e.mood  : null; });
+  const mySleep = LAST_7_DATES.map(d => { const e = STATE.myData.find(x => x.date === d); return e ? e.sleep : null; });
  
   const datasets = [];
  
@@ -481,7 +493,7 @@ function _renderMoodChart() {
   if (_moodChart) _moodChart.destroy();
   _moodChart = new Chart(document.getElementById('chart-mood'), {
     type: 'line',
-    data: { labels: DAYS, datasets },
+    data: { labels: DAY_LABELS, datasets },
     options: {
       responsive:          true,
       maintainAspectRatio: false,
@@ -558,7 +570,7 @@ function _renderNourishChart(data) {
 //  CHART 3 — Sleep bar chart
 // ═══════════════════════════════════════════════════════════════════════
 function _renderSleepChart(data) {
-  const byDay    = DAYS.map(d => {
+  const byDay    = LAST_7_DATES.map(d => {
     const rows = data.filter(e => e.date === d);
     return rows.length ? avg(rows.map(e => e.sleep)) : 0;
   });
@@ -571,7 +583,7 @@ function _renderSleepChart(data) {
   _sleepChart = new Chart(document.getElementById('chart-sleep'), {
     type: 'bar',
     data: {
-      labels:   DAYS,
+      labels:   DAY_LABELS,
       datasets: [{
         label:           'Sleep (h)',
         data:            byDay,
