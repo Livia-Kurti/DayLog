@@ -1,6 +1,15 @@
-"dependencies": {
-  "cors": "^2.8.5",
-  "dotenv": "^16.0.3",
-  "express": "^4.18.2",
-  "mongoose": "^8.3.0" 
+{
+  "name": "daylog",
+  "version": "1.0.0",
+  "description": "DayLog Wellbeing Research",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongoose": "^8.3.0"
+  }
 }
