@@ -52,7 +52,7 @@
 */
 
 // ── Config ──────────────────────────────────────────────────────
-const USE_MOCK_DATA = true;              // ← set false when backend is ready
+const USE_MOCK_DATA = false;             // Changed from true to false!
 const API_BASE      = "http://localhost:3001"; // ← your Express server URL
 
 // ── Mock in-memory store (used when USE_MOCK_DATA = true) ────────
@@ -103,12 +103,12 @@ let _mockSession = null;
 /**
  * Log in with username + password.
  * Returns: { ok: true, user: { id, username } }  on success
- *          { ok: false, error: "message" }         on failure
+ * { ok: false, error: "message" }         on failure
  *
  * REAL BACKEND — POST /api/auth/login
- *   body:    { username, password }
- *   server:  find user, bcrypt.compare(password, user.passwordHash)
- *            if ok → create session / sign JWT → return user object
+ * body:    { username, password }
+ * server:  find user, bcrypt.compare(password, user.passwordHash)
+ * if ok → create session / sign JWT → return user object
  */
 async function apiLogin(username, password) {
   if (USE_MOCK_DATA) {
@@ -143,10 +143,10 @@ async function apiLogin(username, password) {
  * Returns: { ok: true }  or  { ok: false, error: "message" }
  *
  * REAL BACKEND — POST /api/auth/signup
- *   body:    { username, email, password }
- *   server:  check username not taken,
- *            bcrypt.hash(password, 10),
- *            save new User document → return success
+ * body:    { username, email, password }
+ * server:  check username not taken,
+ * bcrypt.hash(password, 10),
+ * save new User document → return success
  */
 async function apiSignup(username, email, password) {
   if (USE_MOCK_DATA) {
@@ -187,7 +187,7 @@ async function apiSignup(username, email, password) {
  * Log out current user.
  *
  * REAL BACKEND — POST /api/auth/logout
- *   server: destroy session or invalidate JWT
+ * server: destroy session or invalidate JWT
  */
 async function apiLogout() {
   if (USE_MOCK_DATA) {
@@ -208,7 +208,7 @@ async function apiLogout() {
  * Returns: { user: { id, username } } or { user: null }
  *
  * REAL BACKEND — GET /api/auth/me
- *   server: read session cookie / JWT → return user or 401
+ * server: read session cookie / JWT → return user or 401
  */
 async function apiGetCurrentUser() {
   if (USE_MOCK_DATA) {
@@ -235,8 +235,8 @@ async function apiGetCurrentUser() {
  * Returns: Array of entry objects
  *
  * REAL BACKEND — GET /api/entries/community
- *   server: db.Entry.find({ createdAt: { $gte: weekStart } })
- *           project out userId for anonymity
+ * server: db.Entry.find({ createdAt: { $gte: weekStart } })
+ * project out userId for anonymity
  */
 async function apiGetCommunityEntries() {
   if (USE_MOCK_DATA) {
@@ -263,7 +263,7 @@ async function apiGetCommunityEntries() {
  * Returns: Array of entry objects
  *
  * REAL BACKEND — GET /api/entries/mine
- *   server: read userId from session → db.Entry.find({ userId })
+ * server: read userId from session → db.Entry.find({ userId })
  */
 async function apiGetMyEntries(userId) {
   if (USE_MOCK_DATA) {
@@ -289,9 +289,9 @@ async function apiGetMyEntries(userId) {
  * @param {string|null} userId  null = anonymous
  *
  * REAL BACKEND — POST /api/entries
- *   body:   { mood, sleep, breakfast, date }
- *   server: read userId from session (or null),
- *           save Entry document → return saved entry
+ * body:   { mood, sleep, breakfast, date }
+ * server: read userId from session (or null),
+ * save Entry document → return saved entry
  */
 async function apiSaveEntry(entry, userId) {
   if (USE_MOCK_DATA) {
