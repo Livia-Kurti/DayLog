@@ -55,6 +55,25 @@ app.get('/api/entries/community', async (req, res) => {
   }
 });
 
+// POST route to save a new entry
+app.post('/api/entries', async (req, res) => {
+  try {
+    const newEntry = new Entry({
+      userId: req.body.userId || null,
+      date: req.body.date,
+      mood: req.body.mood,
+      sleep: req.body.sleep,
+      breakfast: req.body.breakfast
+    });
+    
+    // This .save() command is what actually creates the database in MongoDB!
+    const savedEntry = await newEntry.save(); 
+    res.json({ ok: true, entry: savedEntry });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: "Could not save entry." });
+  }
+});
+
 // 9. THE FALLBACK (FIXED FOR EXPRESS 5)
 app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
